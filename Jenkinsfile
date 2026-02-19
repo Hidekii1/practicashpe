@@ -4,6 +4,7 @@ pipeline {
     tools {
         // Asegúrate de tener Maven configurado en "Global Tool Configuration" con este nombre
         maven 'Maven' 
+        jdk 'JAVA_HOME' // O el nombre que le hayas puesto a tu JDK en Jenkins
     }
 
     environment {
