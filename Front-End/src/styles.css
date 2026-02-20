@@ -1,0 +1,16 @@
+body {
+  font-family: Roboto, Arial, sans-serif;
+  margin: 0;
+}
+
+
+.ag-row-hover {
+    /* putting in !important so it overrides the theme's styling as it hovers the row also */
+    background-color: #dfdfff !important;
+  }
+  
+  /* .ag-column-hover {
+    background-color: #d4dce0;
+  } */
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

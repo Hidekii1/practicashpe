@@ -21,25 +21,29 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                // Compila y ejecuta tests unitarios, pero no detiene el build si fallan (opcional)
-                sh 'mvn clean package -DskipTests' 
+                // Le decimos a Jenkins que entre en la carpeta Back-End
+                dir('Back-End') { 
+                    sh 'mvn clean package -DskipTests'
+                }
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                script {
-                    // "sonar-server" debe coincidir con el nombre en Administrar Jenkins -> System
-                    withSonarQubeEnv('SonarQubeHPE') {
-                        // Lanza el análisis pasando la clave del proyecto
-                        sh """
-                        mvn sonar:sonar \
-                          -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                          -Dsonar.host.url=http://sonarqube:9000 \
-                          -Dsonar.login=${SONAR_AUTH_TOKEN}
-                        """
-                        // Nota: withSonarQubeEnv inyecta las credenciales automáticamente,
-                        // pero a veces es necesario reforzar la URL interna si falla la detección.
+                dir('Back-End') {
+                    script {
+                        // "sonar-server" debe coincidir con el nombre en Administrar Jenkins -> System
+                        withSonarQubeEnv('SonarQubeHPE') {
+                            // Lanza el análisis pasando la clave del proyecto
+                            sh """
+                            mvn sonar:sonar \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.host.url=http://sonarqube:9000 \
+                            -Dsonar.login=${SONAR_AUTH_TOKEN}
+                            """
+                            // Nota: withSonarQubeEnv inyecta las credenciales automáticamente,
+                            // pero a veces es necesario reforzar la URL interna si falla la detección.
+                        }
                     }
                 }
             }
@@ -57,23 +61,25 @@ pipeline {
         
     stage('Publish to Nexus') {
             steps {
-                script {
-                    // Usamos el plugin que acabamos de instalar
-                    nexusArtifactUploader(
-                        nexusVersion: 'nexus3',
-                        protocol: 'http',
-                        nexusUrl: 'nexus:8081', // Usamos el nombre del contenedor en la red Docker
-                        groupId: 'com.fourier',
-                        version: '1.0.0',
-                        repository: 'hpe-releases',
-                        credentialsId: 'nexus-credentials', // Credencial que ya tienes en Jenkins
-                        artifacts: [
-                            [artifactId: 'continuum-app',
-                             classifier: '',
-                             file: 'target/continuum-app-1.0.0.jar', // La ruta del jar que compiló Maven
-                             type: 'jar']
-                        ]
-                    )
+                dir('Back-End') {
+                    script {
+                        // Usamos el plugin que acabamos de instalar
+                        nexusArtifactUploader(
+                            nexusVersion: 'nexus3',
+                            protocol: 'http',
+                            nexusUrl: 'nexus:8081', // Usamos el nombre del contenedor en la red Docker
+                            groupId: 'com.ismail',
+                            version: '1.0.0',
+                            repository: 'hpe-releases',
+                            credentialsId: 'nexus-credentials', // Credencial que ya tienes en Jenkins
+                            artifacts: [
+                                [artifactId: 'issuetracking',
+                                classifier: '',
+                                file: 'target/issuetracking-0.0.1-SNAPSHOT.jar', // La ruta del jar que compiló Maven
+                                type: 'jar']
+                            ]
+                        )
+                    }
                 }
             }
         }
