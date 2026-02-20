@@ -30,7 +30,7 @@ pipeline {
             steps {
                 script {
                     // "sonar-server" debe coincidir con el nombre en Administrar Jenkins -> System
-                    withSonarQubeEnv('sonar-server') {
+                    withSonarQubeEnv('SonarQubeHPE') {
                         // Lanza el análisis pasando la clave del proyecto
                         sh """
                         mvn sonar:sonar \
