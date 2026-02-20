@@ -54,8 +54,7 @@ pipeline {
                 }
             }
         }
-    }
-
+        
     stage('Publish to Nexus') {
             steps {
                 script {
@@ -78,6 +77,7 @@ pipeline {
                 }
             }
         }
+    }
     
     post {
         always {
