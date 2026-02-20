@@ -55,6 +55,29 @@ pipeline {
             }
         }
     }
+
+    stage('Publish to Nexus') {
+            steps {
+                script {
+                    // Usamos el plugin que acabamos de instalar
+                    nexusArtifactUploader(
+                        nexusVersion: 'nexus3',
+                        protocol: 'http',
+                        nexusUrl: 'nexus:8081', // Usamos el nombre del contenedor en la red Docker
+                        groupId: 'com.fourier',
+                        version: '1.0.0',
+                        repository: 'hpe-releases',
+                        credentialsId: 'nexus-credentials', // Credencial que ya tienes en Jenkins
+                        artifacts: [
+                            [artifactId: 'continuum-app',
+                             classifier: '',
+                             file: 'target/continuum-app-1.0.0.jar', // La ruta del jar que compiló Maven
+                             type: 'jar']
+                        ]
+                    )
+                }
+            }
+        }
     
     post {
         always {
