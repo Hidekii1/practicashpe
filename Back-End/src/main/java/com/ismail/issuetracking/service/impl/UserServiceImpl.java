@@ -10,7 +10,6 @@ import com.ismail.issuetracking.entity.Role;
 import com.ismail.issuetracking.entity.User;
 import com.ismail.issuetracking.exception.IssueTrackingException;
 import com.ismail.issuetracking.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,17 +19,23 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private PositionRepository positionRepository;
+    private final PositionRepository positionRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    public UserServiceImpl(UserRepository userRepository,
+            PositionRepository positionRepository,
+            RoleRepository roleRepository,
+            BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.userRepository = userRepository;
+        this.positionRepository = positionRepository;
+        this.roleRepository = roleRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    }
 
     @Override
     public User add(UserDTO userDTO) {
@@ -45,24 +50,22 @@ public class UserServiceImpl implements UserService {
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         user.setPosition(positionRepository.findById(userDTO.getPositionId()).get());
         user.setRole(roleRepository.findById(userDTO.getRoleId()).get());
-        //user.setActive(false);
-        user.setActive(userDTO.getActive() != null ? userDTO.getActive() : true);
+        user.setActive(userDTO.getActive() == null || userDTO.getActive());
         return userRepository.save(user);
     }
 
     @Override
     public User edit(UserDTO userDTO) {
-        if (userRepository.findByUserNameAndIdNot(userDTO.getUserName(),userDTO.getId()).isPresent()) {
+        if (userRepository.findByUserNameAndIdNot(userDTO.getUserName(), userDTO.getId()).isPresent()) {
             throw new IssueTrackingException("USER NAME IS EXIST");
         }
-        if (userRepository.findByEmailAndIdNot(userDTO.getEmail(),userDTO.getId()).isPresent() ) {
+        if (userRepository.findByEmailAndIdNot(userDTO.getEmail(), userDTO.getId()).isPresent()) {
             throw new IssueTrackingException("EMAIL IS EXIST");
         }
         User user = userDTO.toUser();
         user.setPassword(userRepository.findByUserName(userDTO.getUserName()).getPassword());
         user.setPosition(positionRepository.findById(userDTO.getPositionId()).get());
         user.setRole(roleRepository.findById(userDTO.getRoleId()).get());
-        //user.setActive(userRepository.findByUserName(userDTO.getUserName()).getActive());
         user.setActive(userDTO.getActive());
         return userRepository.save(user);
     }
@@ -85,7 +88,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findById(Long id) {
-        return userRepository.findById(id).get();
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IssueTrackingException("USER_NOT_FOUND"));
     }
 
     @Override
@@ -116,13 +120,13 @@ public class UserServiceImpl implements UserService {
             throw new IssueTrackingException("USER_NOT_FOUND");
         }
         User user = userRepository.findById(changePasswordDTO.getUserId()).get();
-        if (!changePasswordDTO.getNewPassword().equalsIgnoreCase(changePasswordDTO.getConfirmPassword())){
+        if (!changePasswordDTO.getNewPassword().equalsIgnoreCase(changePasswordDTO.getConfirmPassword())) {
             throw new IssueTrackingException("NEW_PASSWORD_AND_CONFIRMED_PASSWORD_NOT_SIMILAR");
         }
-        if (bCryptPasswordEncoder.matches(changePasswordDTO.getOldPassword(),user.getPassword())){
+        if (bCryptPasswordEncoder.matches(changePasswordDTO.getOldPassword(), user.getPassword())) {
             user.setPassword(bCryptPasswordEncoder.encode(changePasswordDTO.getNewPassword()));
             userRepository.save(user);
-        }else {
+        } else {
             throw new IssueTrackingException("PASSWORD_NOT_MATCH");
         }
 

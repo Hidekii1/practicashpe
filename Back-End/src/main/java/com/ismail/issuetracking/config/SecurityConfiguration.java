@@ -3,7 +3,6 @@ package com.ismail.issuetracking.config;
 import com.ismail.issuetracking.config.jwt.JwtAuthenticationEntryPoint;
 import com.ismail.issuetracking.config.jwt.JwtRequestFilter;
 import com.ismail.issuetracking.service.impl.MyUserDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,21 +20,20 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    private MyUserDetailsService userDetailsService;
+    private static final String ROLE_ADMIN = "ADMIN";
 
-    @Autowired
-    private JwtRequestFilter jwtRequestFilter;
+    private final MyUserDetailsService userDetailsService;
 
-    @Autowired
-    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtRequestFilter jwtRequestFilter;
 
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-// configure AuthenticationManager so that it knows from where to load
-// user for matching credentials
-// Use BCryptPasswordEncoder
-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+    public SecurityConfiguration(MyUserDetailsService userDetailsService,
+            JwtRequestFilter jwtRequestFilter,
+            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
+        this.userDetailsService = userDetailsService;
+        this.jwtRequestFilter = jwtRequestFilter;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
 
     @Bean
@@ -61,18 +59,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .headers().frameOptions().disable()
                 .and()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.OPTIONS,"/**").permitAll()
-                 // 3) Permitir todas las peticiones a /h2-console/**
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // 3) Permitir todas las peticiones a /h2-console/**
                 .antMatchers("/h2-console/**").permitAll()
                 // 4) El resto, según tu flujo de autenticación
                 .antMatchers(loginPage).permitAll()
-                .antMatchers(HttpMethod.POST,"/users").hasAuthority("ADMIN")
-                .antMatchers(HttpMethod.PUT,"/users/**").hasAuthority("ADMIN")
-                .antMatchers( HttpMethod.DELETE,"/users/**").hasAuthority("ADMIN")
+                .antMatchers(HttpMethod.POST, "/users").hasAuthority(ROLE_ADMIN)
+                .antMatchers(HttpMethod.PUT, "/users/**").hasAuthority(ROLE_ADMIN)
+                .antMatchers(HttpMethod.DELETE, "/users/**").hasAuthority(ROLE_ADMIN)
                 .antMatchers("/authenticate").permitAll()
                 .anyRequest()
                 .authenticated()
-                .and().exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
+                .and().exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and()
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .formLogin()
@@ -90,11 +89,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     }
 
-
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
     }
-
 
 }

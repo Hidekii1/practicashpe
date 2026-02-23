@@ -1,6 +1,7 @@
 package com.ismail.issuetracking.controller;
 
 import com.ismail.issuetracking.config.jwt.JwtTokenUtil;
+import com.ismail.issuetracking.dto.LoginDTO;
 import com.ismail.issuetracking.entity.User;
 import com.ismail.issuetracking.exception.IssueTrackingException;
 import com.ismail.issuetracking.model.JwtResponse;
@@ -9,8 +10,6 @@ import com.ismail.issuetracking.model.ResponseMessage;
 import com.ismail.issuetracking.service.UserService;
 import com.ismail.issuetracking.service.impl.MyUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,27 +23,31 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin
 public class AuthenticationController {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
-    @Autowired
-    private MyUserDetailsService userDetailsService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenUtil jwtTokenUtil;
+    private final MyUserDetailsService userDetailsService;
+    private final UserService userService;
 
-    @Autowired
-    private UserService userService;
-
+    public AuthenticationController(AuthenticationManager authenticationManager,
+            JwtTokenUtil jwtTokenUtil,
+            MyUserDetailsService userDetailsService,
+            UserService userService) {
+        this.authenticationManager = authenticationManager;
+        this.jwtTokenUtil = jwtTokenUtil;
+        this.userDetailsService = userDetailsService;
+        this.userService = userService;
+    }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<?> createAuthenticationToken(User user) throws Exception {
+    public ResponseEntity<?> createAuthenticationToken(LoginDTO loginDTO) throws Exception {
 
         ResponseMessage responseMessage = ResponseMessage.getInstance();
         try {
-            authenticate(user.getUserName(), user.getPassword());
-            final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUserName());
+            authenticate(loginDTO.getUserName(), loginDTO.getPassword());
+            final UserDetails userDetails = userDetailsService.loadUserByUsername(loginDTO.getUserName());
             final String token = jwtTokenUtil.generateToken(userDetails);
 
-            user = userService.findByUserName(user.getUserName());
+            User user = userService.findByUserName(loginDTO.getUserName());
             JwtResponse jwtResponse = new JwtResponse(token);
             responseMessage.setResponse(new LoginResponse(user, jwtResponse));
         } catch (IssueTrackingException e) {
@@ -57,21 +60,21 @@ public class AuthenticationController {
         return ResponseEntity.ok(responseMessage);
     }
 
-    private void authenticate(String username, String password) throws Exception {
+    private void authenticate(String username, String password) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
         } catch (DisabledException e) {
-            throw new Exception("USER_DISABLED", e);
+            throw new IssueTrackingException("USER_DISABLED", e);
         } catch (BadCredentialsException e) {
-            throw new Exception("INVALID_CREDENTIALS", e);
+            throw new IssueTrackingException("INVALID_CREDENTIALS", e);
         }
     }
 
     @PostMapping("/errorLogin")
-    public ResponseEntity<?> success(User user) {
+    public ResponseEntity<?> success(LoginDTO loginDTO) {
         ResponseMessage responseMessage = ResponseMessage.getInstance();
         try {
-            authenticate(user.getUserName(),user.getPassword());
+            authenticate(loginDTO.getUserName(), loginDTO.getPassword());
         } catch (ExpiredJwtException e) {
             responseMessage.setSuccess(false);
             responseMessage.setErrMsg(e.getMessage());
@@ -79,6 +82,6 @@ public class AuthenticationController {
             responseMessage.setErrMsg(e.getMessage());
             responseMessage.setSuccess(false);
         }
-        return new ResponseEntity(responseMessage, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
     }
 }

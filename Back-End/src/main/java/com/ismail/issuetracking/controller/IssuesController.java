@@ -5,7 +5,6 @@ import com.ismail.issuetracking.exception.IssueTrackingException;
 import com.ismail.issuetracking.model.ResponseMessage;
 import com.ismail.issuetracking.service.IssuesService;
 import com.ismail.issuetracking.util.Constants;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
@@ -13,18 +12,18 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/issues")
 public class IssuesController {
 
-    @Autowired
-    private IssuesService issuesService;
+    private final IssuesService issuesService;
 
-//    @CachePut(value = "userIssuesFilter", key = "#issueDTO.owner")
+    public IssuesController(IssuesService issuesService) {
+        this.issuesService = issuesService;
+    }
+
+    // @CachePut(value = "userIssuesFilter", key = "#issueDTO.owner")
     @PostMapping("")
     public ResponseMessage add(@RequestBody IssueDTO issueDTO) {
         try {
-            return ResponseMessage.builder().
-                    isSuccess(true).
-                    response(issuesService.add(issueDTO)).
-                    successMsg(Constants.ISSUE_ADDED_SUCCESSFULLY).
-                    build();
+            return ResponseMessage.builder().isSuccess(true).response(issuesService.add(issueDTO))
+                    .successMsg(Constants.ISSUE_ADDED_SUCCESSFULLY).build();
         } catch (IssueTrackingException e) {
             return ResponseMessage.builder().isSuccess(false).errMsg(e.getMessage()).build();
         } catch (Exception e) {
@@ -32,9 +31,9 @@ public class IssuesController {
         }
     }
 
-//    @CachePut(value = "userIssues", key = "#issueDTO.id")
+    // @CachePut(value = "userIssues", key = "#issueDTO.id")
     @PutMapping("/{id}")
-    public ResponseMessage edit(@PathVariable Long id,@RequestBody IssueDTO issueDTO) {
+    public ResponseMessage edit(@PathVariable Long id, @RequestBody IssueDTO issueDTO) {
         ResponseMessage responseMessage = ResponseMessage.getInstance();
         try {
             issueDTO.setId(id);
@@ -51,7 +50,7 @@ public class IssuesController {
         return responseMessage;
     }
 
-//    @CacheEvict(value = "userIssues", allEntries=true)
+    // @CacheEvict(value = "userIssues", allEntries=true)
     @DeleteMapping("/{id}")
     public ResponseMessage delete(@PathVariable Long id) {
         ResponseMessage responseMessage = ResponseMessage.getInstance();
@@ -101,7 +100,7 @@ public class IssuesController {
         return responseMessage;
     }
 
-//    @Cacheable(value = "userIssues", key = "#userId")
+    // @Cacheable(value = "userIssues", key = "#userId")
     @GetMapping("/user/{userId}")
     public ResponseMessage getByUser(@PathVariable Long userId) {
         ResponseMessage responseMessage = ResponseMessage.getInstance();
@@ -118,14 +117,12 @@ public class IssuesController {
         return responseMessage;
     }
 
-//    @Cacheable(value = "userIssuesFilter", key = "#userId")
+    // @Cacheable(value = "userIssuesFilter", key = "#userId")
     @GetMapping("/users/{userId}/filter/{filterId}")
-    public ResponseMessage filter(@PathVariable Long userId,@PathVariable int filterId) {
+    public ResponseMessage filter(@PathVariable Long userId, @PathVariable int filterId) {
         try {
-            return ResponseMessage.builder().
-                    isSuccess(true).
-                    response(issuesService.issuesFilter(userId,filterId)).
-                    build();
+            return ResponseMessage.builder().isSuccess(true).response(issuesService.issuesFilter(userId, filterId))
+                    .build();
         } catch (IssueTrackingException e) {
             return ResponseMessage.builder().isSuccess(false).errMsg(e.getMessage()).build();
         } catch (Exception e) {

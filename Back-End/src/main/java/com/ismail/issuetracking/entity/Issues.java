@@ -1,7 +1,5 @@
 package com.ismail.issuetracking.entity;
 
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
@@ -13,8 +11,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @ToString
@@ -38,34 +34,34 @@ public class Issues implements Serializable {
     @Column(name = "ATTACHMENT")
     private String attachment;
 
-    //    @JsonBackReference(value = "owner")
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    // @JsonBackReference(value = "owner")
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     @ManyToOne
     @JoinColumn(name = "USER_ID")
     private User user;
 
-    //    @JsonBackReference(value = "assignTo")
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    // @JsonBackReference(value = "assignTo")
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     @ManyToOne
     @JoinColumn(name = "ASSIGN_TO")
     private User assignTo;
 
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     @OneToOne
     @JoinColumn(name = "STATUS_ID")
     private Status status;
 
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     @OneToOne
     @JoinColumn(name = "TYPE_ID")
     private Type type;
 
-    @JsonFormat(pattern="yyyy-MM-dd hh:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss")
     @Column(updatable = false)
     @CreationTimestamp
     private LocalDateTime createDateTime;
 
-    @JsonFormat(pattern="yyyy-MM-dd hh:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss")
     @UpdateTimestamp
     private LocalDateTime updateDateTime;
 

@@ -16,7 +16,7 @@ public class ResponseMessage implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private boolean isSuccess;
-    private Object response;
+    private transient Object response;
     private String errMsg;
     private String errDetail;
     private String successMsg;

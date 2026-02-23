@@ -8,7 +8,8 @@ import com.ismail.issuetracking.entity.Type;
 import com.ismail.issuetracking.entity.User;
 import com.ismail.issuetracking.exception.IssueTrackingException;
 import com.ismail.issuetracking.service.IssuesService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,14 +18,22 @@ import java.util.List;
 @Service
 public class IssuesServiceImpl implements IssuesService {
 
-    @Autowired
-    private IssuesRepository issuesRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private StatusRepository statusRepository;
-    @Autowired
-    private TypeRepository typeRepository;
+    private static final Logger logger = LoggerFactory.getLogger(IssuesServiceImpl.class);
+
+    private final IssuesRepository issuesRepository;
+    private final UserRepository userRepository;
+    private final StatusRepository statusRepository;
+    private final TypeRepository typeRepository;
+
+    public IssuesServiceImpl(IssuesRepository issuesRepository,
+            UserRepository userRepository,
+            StatusRepository statusRepository,
+            TypeRepository typeRepository) {
+        this.issuesRepository = issuesRepository;
+        this.userRepository = userRepository;
+        this.statusRepository = statusRepository;
+        this.typeRepository = typeRepository;
+    }
 
     @Override
     public Issues add(IssueDTO issueDTO) {
@@ -63,31 +72,23 @@ public class IssuesServiceImpl implements IssuesService {
 
     @Override
     public Issues find(Long id) {
-        if (!issuesRepository.existsById(id)) {
-            throw new IssueTrackingException("ISSUE_NOT_FOUND");
-        }
-        return issuesRepository.findById(id).get();
+        return issuesRepository.findById(id)
+                .orElseThrow(() -> new IssueTrackingException("ISSUE_NOT_FOUND"));
     }
 
     @Override
     public List<Issues> findByUser(Long id) {
-        System.out.println(">>>>>>> from findByUser");
-        User user = userRepository.findById(id).get();
-        if (user == null) {
-            throw new IssueTrackingException("USER_NOT_FOUND");
-        } else {
-            return issuesRepository.findByUser(user);
-        }
+        logger.info(">>>>>>> from findByUser");
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IssueTrackingException("USER_NOT_FOUND"));
+        return issuesRepository.findByUser(user);
     }
 
     @Override
     public List<Issues> findByAssigned(Long id) {
-        User user = userRepository.findById(id).get();
-        if (user == null) {
-            throw new IssueTrackingException("USER_NOT_FOUND");
-        } else {
-            return issuesRepository.findByAssignTo(user);
-        }
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IssueTrackingException("USER_NOT_FOUND"));
+        return issuesRepository.findByAssignTo(user);
     }
 
     @Override
@@ -102,10 +103,8 @@ public class IssuesServiceImpl implements IssuesService {
 
     @Override
     public List<Issues> issuesFilter(Long id, int filterId) {
-        User user = userRepository.findById(id).get();
-        if (user == null) {
-            throw new IssueTrackingException("USER_NOT_FOUND");
-        }
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IssueTrackingException("USER_NOT_FOUND"));
         List<Issues> issuesList = new ArrayList<>();
         switch (filterId) {
             case 1:
@@ -120,15 +119,21 @@ public class IssuesServiceImpl implements IssuesService {
             case 6:
                 Status status = new Status();
                 if (filterId == 3) {
-                    status = statusRepository.findById(1L).get();
+                    status = statusRepository.findById(1L)
+                            .orElseThrow(() -> new IssueTrackingException("STATUS_NOT_FOUND"));
                 } else if (filterId == 4) {
-                    status = statusRepository.findById(3L).get();
+                    status = statusRepository.findById(3L)
+                            .orElseThrow(() -> new IssueTrackingException("STATUS_NOT_FOUND"));
                 } else if (filterId == 5) {
-                    status = statusRepository.findById(4L).get();
+                    status = statusRepository.findById(4L)
+                            .orElseThrow(() -> new IssueTrackingException("STATUS_NOT_FOUND"));
                 } else if (filterId == 6) {
-                    status = statusRepository.findById(2L).get();
+                    status = statusRepository.findById(2L)
+                            .orElseThrow(() -> new IssueTrackingException("STATUS_NOT_FOUND"));
                 }
                 issuesList = issuesRepository.findByAssignToAndStatus(user, status);
+                break;
+            default:
                 break;
         }
 

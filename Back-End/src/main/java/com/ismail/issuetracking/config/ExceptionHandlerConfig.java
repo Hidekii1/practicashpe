@@ -3,7 +3,6 @@ package com.ismail.issuetracking.config;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.ismail.issuetracking.model.ResponseMessage;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.context.annotation.Bean;
@@ -13,14 +12,9 @@ import org.springframework.web.context.request.WebRequest;
 @Configuration
 public class ExceptionHandlerConfig {
 
-    //private static final String DEFAULT_KEY_TIMESTAMP = "timestamp";
     private static final String DEFAULT_KEY_STATUS = "status";
     private static final String DEFAULT_KEY_ERROR = "error";
-    private static final String DEFAULT_KEY_ERRORS = "errors";
     private static final String DEFAULT_KEY_MESSAGE = "message";
-    //private static final String DEFAULT_KEY_PATH = "path";
-
-    //
 
     @Bean
     public ErrorAttributes errorAttributes() {
