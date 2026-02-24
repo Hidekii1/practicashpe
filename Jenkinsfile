@@ -39,7 +39,7 @@ pipeline {
                             mvn sonar:sonar \
                             -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                             -Dsonar.host.url=http://sonarqube:9000 \
-                            -Dsonar.login=${SONAR_AUTH_TOKEN}
+                            -Dsonar.token=${SONAR_AUTH_TOKEN}
                             """
                             // Nota: withSonarQubeEnv inyecta las credenciales automáticamente,
                             // pero a veces es necesario reforzar la URL interna si falla la detección.
