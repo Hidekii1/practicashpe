@@ -6,6 +6,8 @@ import com.ismail.issuetracking.entity.User;
 import com.ismail.issuetracking.exception.IssueTrackingException;
 import com.ismail.issuetracking.model.ResponseMessage;
 import com.ismail.issuetracking.service.UserService;
+import com.ismail.issuetracking.util.Constants;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +18,9 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private final UserService userService;
+    @Autowired
+    private UserService userService;
 
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
 
     @PostMapping("")
     public ResponseEntity<ResponseMessage> addUser(@RequestBody UserDTO userDTO) {
@@ -72,6 +72,7 @@ public class UserController {
         }
         return responseMessage;
     }
+
 
     @GetMapping("")
     public ResponseMessage getAllUser() {
@@ -154,13 +155,13 @@ public class UserController {
     }
 
     @PostMapping("/{id}/changePassword")
-    public ResponseEntity<ResponseMessage> addUser(@PathVariable Long id,
-            @RequestBody ChangePasswordDTO changePasswordDTO) {
+    public ResponseEntity<ResponseMessage> addUser(@PathVariable Long id, @RequestBody ChangePasswordDTO changePasswordDTO) {
 
         ResponseMessage responseMessage = ResponseMessage.getInstance();
         try {
             changePasswordDTO.setUserId(id);
             userService.changePassword(changePasswordDTO);
+//            responseMessage.setResponse();
             responseMessage.setSuccess(true);
         } catch (IssueTrackingException e) {
             responseMessage.setSuccess(false);

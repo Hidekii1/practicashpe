@@ -1,8 +1,10 @@
 package com.ismail.issuetracking.config.jwt;
 
+import com.ismail.issuetracking.exception.IssueTrackingException;
 import com.ismail.issuetracking.service.impl.MyUserDetailsService;
 import com.ismail.issuetracking.util.Constants;
 import io.jsonwebtoken.ExpiredJwtException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,14 +20,11 @@ import java.io.IOException;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
-    private final MyUserDetailsService userDetailsService;
+    @Autowired
+    private MyUserDetailsService userDetailsService;
 
-    private final JwtTokenUtil jwtTokenUtil;
-
-    public JwtRequestFilter(MyUserDetailsService userDetailsService, JwtTokenUtil jwtTokenUtil) {
-        this.userDetailsService = userDetailsService;
-        this.jwtTokenUtil = jwtTokenUtil;
-    }
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -34,8 +33,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         final String requestTokenHeader = request.getHeader("Authorization");
         String username = null;
         String jwtToken = null;
-        // JWT Token is in the form "Bearer token". Remove Bearer word and get
-        // only the Token
+// JWT Token is in the form "Bearer token". Remove Bearer word and get
+// only the Token
         if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
             jwtToken = requestTokenHeader.substring(7);
             try {
@@ -49,19 +48,18 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         } else {
             logger.error("JWT Token does not begin with Bearer String");
         }
-        // Once we get the token validate it.
+// Once we get the token validate it.
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-            // if token is valid configure Spring Security to manually set
-            // authentication
-            if (Boolean.TRUE.equals(jwtTokenUtil.validateToken(jwtToken, userDetails, request))) {
+// if token is valid configure Spring Security to manually set
+// authentication
+            if (jwtTokenUtil.validateToken(jwtToken, userDetails, request)) {
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
-                usernamePasswordAuthenticationToken
-                        .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                // After setting the Authentication in the context, we specify
-                // that the current user is authenticated. So it passes the
-                // Spring Security Configurations successfully.
+                usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+// After setting the Authentication in the context, we specify
+// that the current user is authenticated. So it passes the
+// Spring Security Configurations successfully.
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
             }
         }

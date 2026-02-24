@@ -1,13 +1,17 @@
 package com.ismail.issuetracking.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 @ToString
@@ -49,4 +53,17 @@ public class User implements Serializable {
     @OneToOne
     @JoinColumn(name = "POS_ID")
     private Position position;
+
+
+//    @JsonManagedReference(value = "owner")
+//    @JsonIgnore
+//    @OneToMany(mappedBy = "user")
+//    private List<Issues> OwnedIssue;
+//
+//    @JsonManagedReference(value = "assignTo")
+//    @JsonIgnore
+//    @OneToMany(mappedBy = "assignTo")
+//    private List<Issues> assignedIssue;
+
+
 }
